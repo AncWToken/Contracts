@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Interface of the ERC20 standard as defined in the EIP.
+ */
+interface IERC20 {
+    /**
+     * @dev Returns the amount of tokens owned by `account`.
+     */
+    function balanceOf(address account) external view returns (uint256);
+
+    /**
+     * @dev Moves `amount` tokens from the caller's account to `recipient`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transfer(address recipient, uint256 amount) external returns (bool);
+}
+
+
+contract AncWLockLP {
+    // liq pool token
+    IERC20 public lpToken;
+    
+    // Contract deployer
+    address public owner;
+    
+    // When it will be open
+    uint public openTime;
+    
+    constructor(address _lpAddress) {
+        lpToken = IERC20(_lpAddress);
+        owner = msg.sender;
+        openTime = block.timestamp + 365 days; // 1 years later
+    }
+    
+    function lockedAmount() public view returns (uint) {
+        return lpToken.balanceOf(address(this));
+    }
+    
+    function withdraw(uint amount) public {
+        require(msg.sender == owner, "AncWLockLP: You are not the owner!");
+        require(block.timestamp >= openTime, "AncWLockLP: You have to wait more...");
+        
+        lpToken.transfer(msg.sender, amount);
+    }
+}
